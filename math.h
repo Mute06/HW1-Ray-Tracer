@@ -96,10 +96,15 @@ struct Vec3 {
     //Only returns the normalized result, doesnt change original vector
     Vec3 Normalize() const {
         const double len = Length();
-        if (len == 0.0) {
-            return Vec3(0.0, 0.0, 0.0);
+        if (len > 1e-14) {
+            return Vec3(x / len, y / len, z / len);
+
         }
-        return Vec3(this->x / len, this->y / len, this->z / len);
+        return Vec3(0.0, 0.0, 0.0);
+    }
+
+    bool IsNormalized() const {
+        return LengthSquared() == 1.0;
     }
 
     //Constants
@@ -124,4 +129,20 @@ struct Vec3 {
     }
 
 };
+
+struct Ray {
+    Vec3 origin;
+    Vec3 direction;
+    int depth = 0;
+
+    Ray() = default;
+
+    Ray(const Vec3& origin, const Vec3& direction, int depth = 0)
+        : origin(origin), direction(direction), depth(depth) {  }
+
+    Vec3 PointAt(const double t) const {
+        return origin + (direction * t);
+    }
+};
+
 #endif // MATH_H
