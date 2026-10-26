@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "ppm.h"
 #include <iostream>
+#include "math.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
