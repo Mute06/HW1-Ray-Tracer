@@ -1,0 +1,7 @@
+/build
+/samples_scenes
+.idea
+
+raytracer
+*.ppm
+*.pdf
