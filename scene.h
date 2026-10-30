@@ -40,12 +40,15 @@ struct Sphere {
     int materialId = 0;
     int centerVertexId = 0;
     double radius = 0.0;
+
+    Vec3 center;
 };
 
 struct Plane {
     int materialId = 0;
     int centerVertexId = 0;
     Vec3 normal;
+    Vec3 point;
 };
 
 struct Cylinder {

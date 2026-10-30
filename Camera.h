@@ -28,7 +28,7 @@ public:
     Camera() = default;
 
     void ComputeBasis();
-    Ray GenerateRay(int i, int j);
+    Ray GenerateRay(int i, int j) const;
 
 
 };

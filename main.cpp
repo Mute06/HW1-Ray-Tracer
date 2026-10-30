@@ -2,6 +2,8 @@
 #include "ppm.h"
 #include <iostream>
 #include "math.h"
+#include "Camera.h"
+#include "intersect.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -13,23 +15,36 @@ int main(int argc, char* argv[]) {
         Scene scene;
         loadScene(argv[1], scene);
 
-        std::cout << "Parsed " << argv[1] << " successfully:\n"
-                  << "  ShadowRayEpsilon:  " << scene.shadowRayEpsilon << "\n"
-                  << "  MaxRecursionDepth: " << scene.maxRecursionDepth << "\n"
-                  << "  Cameras:           " << scene.cameras.size() << "\n"
-                  << "  PointLights:       " << scene.pointLights.size() << "\n"
-                  << "  Materials:         " << scene.materials.size() << "\n"
-                  << "  Vertices:          " << scene.vertices.size() << "\n"
-                  << "  Meshes:            " << scene.meshes.size() << " (faces in mesh 0: "
-                  << (scene.meshes.empty() ? 0 : scene.meshes[0].faces.size()) << ")\n"
-                  << "  Triangles:         " << scene.triangles.size() << "\n"
-                  << "  Spheres:           " << scene.spheres.size() << "\n";
+        for (const Camera& cam : scene.cameras) {
+            std::vector<Vec3> pixels(cam.ImageWidth * cam.ImageHeight);
 
-        for (const auto& cam : scene.cameras) {
-            std::vector<Vec3> pixels(cam.imageWidth * cam.imageHeight, scene.backgroundColor);
-            writePPM(cam.imageName, cam.imageWidth, cam.imageHeight, pixels);
-            std::cout << "Wrote " << cam.imageName << " (" << cam.imageWidth << "x" << cam.imageHeight << ")\n";
+            for (int j = 0; j < cam.ImageHeight; j++) {
+                for (int i = 0; i < cam.ImageWidth; i++) {
+                    Ray ray = cam.GenerateRay(i,j);
+
+                    HitRecord hit;
+
+                    if (findClosestHit(ray, scene, hit)) {
+
+                        const Material& mat = scene.materials[hit.materialId];
+                        pixels[j * cam.ImageWidth + i] = Vec3{
+                            mat.diffuseReflectance.x * 255.0,
+                            mat.diffuseReflectance.y * 255.0,
+                            mat.diffuseReflectance.z * 255.0
+                        };
+
+                    }
+
+                    else {
+                        pixels[j * cam.ImageWidth + i] = scene.backgroundColor;
+                    }
+                }
+            }
+
+            writePPM(cam.ImageName, cam.ImageWidth, cam.ImageHeight, pixels);
+            std::cout << "Rendered " << cam.ImageName << " successfully.\n";
         }
+
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         return 1;

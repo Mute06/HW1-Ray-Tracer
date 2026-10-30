@@ -135,10 +135,13 @@ struct Ray {
     Vec3 direction;
     int depth = 0;
 
+    double tMin = 0;
+    double tMax = 1e30;
+
     Ray() = default;
 
-    Ray(const Vec3& origin, const Vec3& direction, int depth = 0)
-        : origin(origin), direction(direction), depth(depth) {  }
+    Ray(const Vec3& origin, const Vec3& direction, int depth = 0, double t_min = 0.0, double t_max = 1e30)
+        : origin(origin), direction(direction), depth(depth) , tMin(t_min), tMax(t_max) {  }
 
     Vec3 PointAt(const double t) const {
         return origin + (direction * t);

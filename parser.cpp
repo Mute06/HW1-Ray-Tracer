@@ -198,6 +198,9 @@ void loadScene(const std::string& filename, Scene& scene) {
                 sph.materialId = parseInt(sphNode.at("Material").get<std::string>()) - 1;
                 sph.centerVertexId = parseInt(sphNode.at("Center").get<std::string>()) - 1;
                 sph.radius = parseDouble(sphNode.at("Radius").get<std::string>());
+
+                sph.center = scene.vertices[sph.centerVertexId];
+
                 scene.spheres.push_back(sph);
             }
         }
@@ -208,6 +211,11 @@ void loadScene(const std::string& filename, Scene& scene) {
                 pl.materialId = parseInt(plNode.at("Material").get<std::string>()) - 1;
                 pl.centerVertexId = parseInt(plNode.at("Center").get<std::string>()) - 1;
                 pl.normal = parseVec3(plNode.at("Normal").get<std::string>());
+                pl.normal = pl.normal.Normalize(); //Ensure normalized plane normals
+
+                //Find the point on a plane by using center vertex given
+                pl.point = scene.vertices[pl.centerVertexId];
+
                 scene.planes.push_back(pl);
             }
         }

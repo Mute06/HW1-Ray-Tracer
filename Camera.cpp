@@ -12,12 +12,12 @@ void Camera::ComputeBasis() {
     Pixel_Height = (NearPlaneTop - NearPlaneBottom) / ImageHeight;
 }
 
-Ray Camera::GenerateRay(int i, int j) {
+Ray Camera::GenerateRay(int i, int j) const {
 
     double S_U = (i + 0.5) * Pixel_Width;
     double S_V = (j + 0.5) * Pixel_Height;
 
     Vec3 S = q + S_U * u - S_V * v;
-    Ray ray(Position, S - Position, 0);
+    Ray ray(Position, S - Position, 0, 1.0, 1e30);
     return ray;
 }
