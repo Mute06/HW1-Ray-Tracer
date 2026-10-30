@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "json.hpp"
+#include "Camera.h"
 
 #include <fstream>
 #include <sstream>
@@ -65,23 +66,43 @@ void loadScene(const std::string& filename, Scene& scene) {
     }
 
     // Cameras
+    // Cameras
     if (s.contains("Cameras") && s["Cameras"].contains("Camera")) {
         for (const auto& camNode : asArray(s["Cameras"]["Camera"])) {
             Camera cam;
             cam.id = parseInt(camNode.at("_id").get<std::string>());
-            cam.position = parseVec3(camNode.at("Position").get<std::string>());
-            cam.gaze = parseVec3(camNode.at("Gaze").get<std::string>());
-            cam.up = parseVec3(camNode.at("Up").get<std::string>());
+            cam.Position = parseVec3(camNode.at("Position").get<std::string>());
+            cam.Gaze = parseVec3(camNode.at("Gaze").get<std::string>());
+            cam.Up = parseVec3(camNode.at("Up").get<std::string>());
 
-            std::stringstream np(camNode.at("NearPlane").get<std::string>());
-            np >> cam.nearPlaneLeft >> cam.nearPlaneRight >> cam.nearPlaneBottom >> cam.nearPlaneTop;
+            // Handle "NearPlane" or "Near Plane"
+            std::string nearPlaneStr = camNode.contains("NearPlane")
+                ? camNode["NearPlane"].get<std::string>()
+                : camNode.at("Near Plane").get<std::string>();
+            std::stringstream np(nearPlaneStr);
+            np >> cam.NearPlaneLeft >> cam.NearPlaneRight >> cam.NearPlaneBottom >> cam.NearPlaneTop;
 
-            cam.nearDistance = parseDouble(camNode.at("NearDistance").get<std::string>());
+            // Handle "NearDistance" or "Near Distance"
+            std::string nearDistStr = camNode.contains("NearDistance")
+                ? camNode["NearDistance"].get<std::string>()
+                : camNode.at("Near Distance").get<std::string>();
+            cam.NearPlaneDistance = parseDouble(nearDistStr);
 
-            std::stringstream res(camNode.at("ImageResolution").get<std::string>());
-            res >> cam.imageWidth >> cam.imageHeight;
+            // Handle "ImageResolution" or "Image Resolution"
+            std::string imgResStr = camNode.contains("ImageResolution")
+                ? camNode["ImageResolution"].get<std::string>()
+                : camNode.at("Image Resolution").get<std::string>();
+            std::stringstream res(imgResStr);
+            res >> cam.ImageWidth >> cam.ImageHeight;
 
-            cam.imageName = camNode.at("ImageName").get<std::string>();
+            // Handle "ImageName" or "Image Name"
+            cam.ImageName = camNode.contains("ImageName")
+                ? camNode["ImageName"].get<std::string>()
+                : camNode.at("Image Name").get<std::string>();
+
+            // Pre-calculate u, v, w, q, Pixel_Width, and Pixel_Height
+            cam.ComputeBasis();
+
             scene.cameras.push_back(cam);
         }
     }

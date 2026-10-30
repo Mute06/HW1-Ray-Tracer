@@ -2,23 +2,11 @@
 #define SCENE_H
 
 #include "math.h"
+#include "Camera.h"
 #include <string>
 #include <vector>
 
-struct Camera {
-    int id = 0;
-    Vec3 position;
-    Vec3 gaze;
-    Vec3 up;
-    double nearPlaneLeft = 0.0;
-    double nearPlaneRight = 0.0;
-    double nearPlaneBottom = 0.0;
-    double nearPlaneTop = 0.0;
-    double nearDistance = 0.0;
-    int imageWidth = 0;
-    int imageHeight = 0;
-    std::string imageName;
-};
+
 
 struct PointLight {
     int id = 0;
