@@ -188,6 +188,12 @@ void loadScene(const std::string& filename, Scene& scene) {
                 tri.v0 = i0 - 1;
                 tri.v1 = i1 - 1;
                 tri.v2 = i2 - 1;
+
+                tri.A = scene.vertices[tri.v0];
+                tri.B = scene.vertices[tri.v1];
+                tri.C = scene.vertices[tri.v2];
+
+
                 scene.triangles.push_back(tri);
             }
         }

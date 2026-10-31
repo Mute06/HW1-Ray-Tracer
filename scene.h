@@ -29,6 +29,10 @@ struct Triangle {
     int v0 = 0;         // 1-based vertex IDs as given in JSON
     int v1 = 0;
     int v2 = 0;
+
+    Vec3 A;
+    Vec3 B;
+    Vec3 C;
 };
 
 struct Mesh {
