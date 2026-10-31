@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "ppm.h"
 #include <iostream>
+#include <chrono>
 #include "math.h"
 #include "Camera.h"
 #include "intersect.h"
@@ -11,6 +12,8 @@ int main(int argc, char* argv[]) {
         std::cerr << "Usage: ./raytracer <scene.json>\n";
         return 1;
     }
+
+    auto start = std::chrono::steady_clock::now();
 
     try {
         Scene scene;
@@ -37,6 +40,12 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: " << e.what() << "\n";
         return 1;
     }
+
+    auto end = std::chrono::steady_clock::now();
+
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+    std::cout << "Execution time: " << elapsed.count() << " ms\n";
 
     return 0;
 }

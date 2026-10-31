@@ -241,6 +241,8 @@ void loadScene(const std::string& filename, Scene& scene) {
                 cyl.axis = parseVec3(cylNode.at("Axis").get<std::string>());
                 cyl.radius = parseDouble(cylNode.at("Radius").get<std::string>());
                 cyl.height = parseDouble(cylNode.at("Height").get<std::string>());
+
+                cyl.center = scene.vertices[cyl.centerVertexId];
                 scene.cylinders.push_back(cyl);
             }
         }

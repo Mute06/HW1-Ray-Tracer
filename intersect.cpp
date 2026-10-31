@@ -383,6 +383,12 @@ bool isInShadow(const Vec3 &hitPoint, const Vec3 &surfaceNormal, const PointLigh
         }
     }
 
+    for (const Cylinder& cylinder : scene.cylinders) {
+        if (intersectCylinder(shadowRay, cylinder, scene, shadowRecord)) {
+            return true;
+        }
+    }
+
     return false;
 }
 

@@ -61,6 +61,8 @@ struct Cylinder {
     Vec3 axis;
     double radius = 0.0;
     double height = 0.0;
+
+    Vec3 center;
 };
 
 struct Scene {
