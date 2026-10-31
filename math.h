@@ -59,6 +59,11 @@ struct Vec3 {
         return vec * scalar;
     }
 
+    //Component wise multilpy
+    Vec3 operator*(const Vec3& vec) const {
+        return Vec3(this->x * vec.x, this->y * vec.y, this->z * vec.z);
+    }
+
 
     Vec3 operator/(const double scalar) const {
         if (scalar == 0.0) {

@@ -56,7 +56,7 @@ bool intersectPlane(const Ray &ray, const Plane &plane, const Scene &scene, HitR
         return false; // Ray is parallel to plane
     }
 
-    double t = Vec3::Dot((plane.point - ray.origin), plane.normal);
+    double t = Vec3::Dot((plane.point - ray.origin), plane.normal) / denominator;
 
     if (t < ray.tMin) {
         return false; //Behind camera
@@ -85,7 +85,7 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     //Check Planes
     for (const Plane& plane : scene.planes) {
-        if (intersectPlane(ray, plane, scene, tempRecord)) {
+        if (intersectPlane(currentRay, plane, scene, tempRecord)) {
             hitAnything = true;
             currentRay.tMax = tempRecord.t;
             bestHit = tempRecord;
@@ -94,7 +94,7 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     //Check Spheres
     for (const Sphere& sphere : scene.spheres) {
-        if (intersectSphere(ray, sphere, scene, tempRecord)) {
+        if (intersectSphere(currentRay, sphere, scene, tempRecord)) {
             hitAnything = true;
             currentRay.tMax = tempRecord.t;
             bestHit = tempRecord;
