@@ -74,6 +74,73 @@ bool intersectPlane(const Ray &ray, const Plane &plane, const Scene &scene, HitR
     return true;
 }
 
+bool intersectTriangle(const Ray &ray, const Triangle &triangle,
+                       const Scene &scene, HitRecord &record) {
+
+    const Vec3 &a = triangle.A;
+    const Vec3 &b = triangle.B;
+    const Vec3 &c = triangle.C;
+
+    // Determinant of the matrix with columns u, v, w.
+    auto determinant = [](const Vec3 &u, const Vec3 &v, const Vec3 &w) {
+        return Vec3::Dot(u, Vec3::Cross(v, w));
+    };
+
+    // [a-b  a-c  d] * [beta gamma t]^T = a-o
+    const Vec3 ab = a - b;
+    const Vec3 ac = a - c;
+    const Vec3 rhs = a - ray.origin;
+
+    const Vec3 normal = Vec3::Cross(b - a, c - a);
+    const double normalLength = normal.Length();
+    const double directionLength = ray.direction.Length();
+
+    // A zero-area triangle or a zero direction has no valid intersection.
+    if (normalLength == 0.0 || directionLength == 0.0) {
+        return false;
+    }
+
+    const double detA = determinant(ab, ac, ray.direction);
+    const double EPSILON = 1e-8;
+
+    // Parallel / nearly parallel ray.
+    // Scale the tolerance because ray.direction is not necessarily unit length.
+    if (std::abs(detA) <= EPSILON * normalLength * directionLength) {
+        return false;
+    }
+
+    // Replace the first column to find beta.
+    const double beta =
+        determinant(rhs, ac, ray.direction) / detA;
+
+    if (beta < 0.0) {
+        return false;
+    }
+
+    // Replace the second column to find gamma.
+    const double gamma =
+        determinant(ab, rhs, ray.direction) / detA;
+
+    if (gamma < 0.0 || beta + gamma > 1.0) {
+        return false;
+    }
+
+    // Replace the third column to find t.
+    const double t = determinant(ab, ac, rhs) / detA;
+
+    if (t < ray.tMin || t > ray.tMax) {
+        return false;
+    }
+
+    record.t = t;
+    record.point = ray.PointAt(t);
+    record.normal = normal / normalLength;
+    record.materialId = triangle.materialId;
+    record.hit = true;
+
+    return true;
+}
+
 bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     // Local copy of ray
@@ -101,6 +168,15 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
         }
     }
 
+    // Check Triangles
+
+    for (const Triangle &triangle : scene.triangles) {
+        if (intersectTriangle(currentRay, triangle, scene, tempRecord)) {
+        hitAnything = true;
+        currentRay.tMax = tempRecord.t;
+        bestHit = tempRecord;
+    }
+}
 
     bestHit.hit = hitAnything;
     return hitAnything;
