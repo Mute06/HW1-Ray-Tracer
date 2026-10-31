@@ -23,5 +23,7 @@ bool intersectTriangle(const Ray &ray, const Triangle &triangle, const Scene &sc
 bool intersectMesh(const Ray &ray, const Mesh &mesh, const Scene &scene, HitRecord &record);
 bool findClosestHit(const Ray& ray, const Scene& scene, HitRecord& bestHit);
 
+bool isInShadow(const Vec3& hitPoint, const Vec3& surfaceNormal, const PointLight& light, const Scene& scene);
+
 
 #endif //HW1_RAY_TRACER_INTERSECT_H

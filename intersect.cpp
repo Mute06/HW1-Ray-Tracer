@@ -217,3 +217,32 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
     bestHit.hit = hitAnything;
     return hitAnything;
 }
+
+bool isInShadow(const Vec3 &hitPoint, const Vec3 &surfaceNormal, const PointLight &light, const Scene &scene) {
+    Vec3 toLight = light.position - hitPoint;
+    double distance = toLight.Length();
+    Vec3 lightDirection = toLight / distance;
+
+    Vec3 shadowRayOrigin = hitPoint + surfaceNormal * scene.shadowRayEpsilon;
+
+    Ray shadowRay(shadowRayOrigin, lightDirection, 0, 1.0, distance);
+
+    HitRecord shadowRecord;
+
+    for (const Sphere& sphere : scene.spheres) {
+
+        if (intersectSphere(shadowRay,sphere, scene, shadowRecord)) {
+            return true;
+        }
+
+    }
+
+    for (const Plane& plane : scene.planes) {
+        if (intersectPlane(shadowRay, plane, scene, shadowRecord)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
