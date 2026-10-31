@@ -225,7 +225,7 @@ bool isInShadow(const Vec3 &hitPoint, const Vec3 &surfaceNormal, const PointLigh
 
     Vec3 shadowRayOrigin = hitPoint + surfaceNormal * scene.shadowRayEpsilon;
 
-    Ray shadowRay(shadowRayOrigin, lightDirection, 0, 1.0, distance);
+    Ray shadowRay(shadowRayOrigin, lightDirection, 0, 0.0, distance);
 
     HitRecord shadowRecord;
 
@@ -240,6 +240,20 @@ bool isInShadow(const Vec3 &hitPoint, const Vec3 &surfaceNormal, const PointLigh
     for (const Plane& plane : scene.planes) {
         if (intersectPlane(shadowRay, plane, scene, shadowRecord)) {
             return true;
+        }
+    }
+
+    for (const Triangle& triangle : scene.triangles) {
+        if (intersectTriangle(shadowRay, triangle, scene, shadowRecord)) {
+            return true;
+        }
+    }
+
+    for (const Mesh& mesh : scene.meshes) {
+        for (const Triangle& face : mesh.faces) {
+            if (intersectTriangle(shadowRay, face, scene, shadowRecord)) {
+                return true;
+            }
         }
     }
 
