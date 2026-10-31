@@ -4,6 +4,7 @@
 #include "math.h"
 #include "Camera.h"
 #include "intersect.h"
+#include "shader.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -22,22 +23,9 @@ int main(int argc, char* argv[]) {
                 for (int i = 0; i < cam.ImageWidth; i++) {
                     Ray ray = cam.GenerateRay(i,j);
 
-                    HitRecord hit;
+                    Vec3 color = computeColor(ray,scene);
 
-                    if (findClosestHit(ray, scene, hit)) {
-
-                        const Material& mat = scene.materials[hit.materialId];
-                        pixels[j * cam.ImageWidth + i] = Vec3{
-                            mat.diffuseReflectance.x * 255.0,
-                            mat.diffuseReflectance.y * 255.0,
-                            mat.diffuseReflectance.z * 255.0
-                        };
-
-                    }
-
-                    else {
-                        pixels[j * cam.ImageWidth + i] = scene.backgroundColor;
-                    }
+                    pixels[j * cam.ImageWidth + i] = color;
                 }
             }
 
