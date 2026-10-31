@@ -167,6 +167,123 @@ bool intersectMesh(const Ray &ray, const Mesh &mesh,
     return hitAnything;
 }
 
+bool intersectCylinder(const Ray &ray, const Cylinder &cylinder,
+                       const Scene &scene, HitRecord &record) {
+
+    const double axisLength = cylinder.axis.Length();
+    const double directionLength = ray.direction.Length();
+
+    if (axisLength == 0.0 || directionLength == 0.0 ||
+        cylinder.radius <= 0.0 || cylinder.height <= 0.0) {
+        return false;
+    }
+
+    // Normalize the cylinder axis, not the ray direction.
+    const Vec3 axis = cylinder.axis / axisLength;
+    const Vec3 q = ray.origin - cylinder.center;
+
+    const double halfHeight = cylinder.height * 0.5;
+    const double radiusSquared = cylinder.radius * cylinder.radius;
+    const double EPSILON = 1e-12;
+
+    // Components along the cylinder axis.
+    const double dAlong = Vec3::Dot(ray.direction, axis);
+    const double qAlong = Vec3::Dot(q, axis);
+
+    // Components perpendicular to the cylinder axis.
+    const Vec3 dPerp = ray.direction - axis * dAlong;
+    const Vec3 qPerp = q - axis * qAlong;
+
+    bool hitAnything = false;
+    double bestT = ray.tMax;
+    Vec3 bestNormal;
+
+    // 1. Side surface: a*t^2 + 2*halfB*t + c = 0.
+    if (dPerp.Length() > EPSILON * directionLength) {
+
+        const double a = Vec3::Dot(dPerp, dPerp);
+        const double halfB = Vec3::Dot(dPerp, qPerp);
+        const double c = Vec3::Dot(qPerp, qPerp) - radiusSquared;
+
+        const double discriminant = halfB * halfB - a * c;
+
+        if (discriminant >= 0.0) {
+
+            const double sqrtD = std::sqrt(discriminant);
+
+            const double roots[2] = {
+                (-halfB - sqrtD) / a,
+                (-halfB + sqrtD) / a
+            };
+
+            for (double t : roots) {
+
+                if (t < ray.tMin || t > bestT) {
+                    continue;
+                }
+
+                // Keep only hits within the finite cylinder's height.
+                const double axialPosition = qAlong + t * dAlong;
+
+                if (axialPosition < -halfHeight ||
+                    axialPosition > halfHeight) {
+                    continue;
+                }
+
+                bestT = t;
+
+                // Outward radial normal.
+                bestNormal = (qPerp + dPerp * t) / cylinder.radius;
+
+                hitAnything = true;
+            }
+        }
+    }
+
+    // 2. Bottom and top caps.
+    if (std::abs(dAlong) > EPSILON * directionLength) {
+
+        const double signs[2] = {-1.0, 1.0};
+
+        for (double sign : signs) {
+
+            const double capPosition = sign * halfHeight;
+
+            // Intersection with the cap's plane.
+            const double t = (capPosition - qAlong) / dAlong;
+
+            if (t < ray.tMin || t > bestT) {
+                continue;
+            }
+
+            // Vector from the cap center to the intersection point.
+            const Vec3 fromCapCenter =
+                q + ray.direction * t - axis * capPosition;
+
+            // Keep only points inside the circular cap.
+            if (Vec3::Dot(fromCapCenter, fromCapCenter) > radiusSquared) {
+                continue;
+            }
+
+            bestT = t;
+            bestNormal = axis * sign;
+            hitAnything = true;
+        }
+    }
+
+    if (!hitAnything) {
+        return false;
+    }
+
+    record.t = bestT;
+    record.point = ray.PointAt(bestT);
+    record.normal = bestNormal;
+    record.materialId = cylinder.materialId;
+    record.hit = true;
+
+    return true;
+}
+
 bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     // Local copy of ray
@@ -209,6 +326,15 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
         if (intersectMesh(currentRay, mesh, scene, tempRecord)) {
         hitAnything = true;
 
+        currentRay.tMax = tempRecord.t;
+        bestHit = tempRecord;
+    }
+}
+
+    // Check Cylinders
+    for (const Cylinder &cylinder : scene.cylinders) {
+    if (intersectCylinder(currentRay, cylinder, scene, tempRecord)) {
+        hitAnything = true;
         currentRay.tMax = tempRecord.t;
         bestHit = tempRecord;
     }
