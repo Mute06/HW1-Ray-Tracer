@@ -19,7 +19,8 @@ struct HitRecord {
 //Intersection Functions
 bool intersectSphere(const Ray& ray, const Sphere& sphere, const Scene& scene, HitRecord& record);
 bool intersectPlane(const Ray& ray, const Plane& plane, const Scene& scene, HitRecord& record);
-
+bool intersectTriangle(const Ray &ray, const Triangle &triangle, const Scene &scene, HitRecord &record)
+bool intersectMesh(const Ray &ray, const Mesh &mesh, const Scene &scene, HitRecord &record);
 bool findClosestHit(const Ray& ray, const Scene& scene, HitRecord& bestHit);
 
 

@@ -141,6 +141,32 @@ bool intersectTriangle(const Ray &ray, const Triangle &triangle,
     return true;
 }
 
+bool intersectMesh(const Ray &ray, const Mesh &mesh,
+                   const Scene &scene, HitRecord &record) {
+
+    Ray currentRay = ray;
+    bool hitAnything = false;
+    HitRecord tempRecord;
+
+    for (const Triangle &face : mesh.faces) {
+
+        if (intersectTriangle(currentRay, face, scene, tempRecord)) {
+
+            hitAnything = true;
+
+            // Only accept closer intersections from now on.
+            currentRay.tMax = tempRecord.t;
+
+            record = tempRecord;
+
+            // All faces use the mesh's material.
+            record.materialId = mesh.materialId;
+        }
+    }
+
+    return hitAnything;
+}
+
 bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     // Local copy of ray
@@ -173,6 +199,16 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
     for (const Triangle &triangle : scene.triangles) {
         if (intersectTriangle(currentRay, triangle, scene, tempRecord)) {
         hitAnything = true;
+        currentRay.tMax = tempRecord.t;
+        bestHit = tempRecord;
+    }
+}
+
+    // Check Meshes
+    for (const Mesh &mesh : scene.meshes) {
+        if (intersectMesh(currentRay, mesh, scene, tempRecord)) {
+        hitAnything = true;
+
         currentRay.tMax = tempRecord.t;
         bestHit = tempRecord;
     }
