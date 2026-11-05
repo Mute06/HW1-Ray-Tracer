@@ -1,7 +1,7 @@
 
 #include "intersect.h"
 
-bool intersectSphere(const Ray &ray, const Sphere &sphere, const Scene &scene, HitRecord &record) {
+bool intersectSphere(const Ray &ray, const Sphere &sphere, HitRecord &record) {
 
 
     //delta_P: p = o - c
@@ -48,7 +48,7 @@ bool intersectSphere(const Ray &ray, const Sphere &sphere, const Scene &scene, H
     return true;
 }
 
-bool intersectPlane(const Ray &ray, const Plane &plane, const Scene &scene, HitRecord &record) {
+bool intersectPlane(const Ray &ray, const Plane &plane, HitRecord &record) {
 
     double denominator = Vec3::Dot(ray.direction, plane.normal);
 
@@ -74,8 +74,7 @@ bool intersectPlane(const Ray &ray, const Plane &plane, const Scene &scene, HitR
     return true;
 }
 
-bool intersectTriangle(const Ray &ray, const Triangle &triangle,
-                       const Scene &scene, HitRecord &record) {
+bool intersectTriangle(const Ray &ray, const Triangle &triangle, HitRecord &record) {
 
     const Vec3 &a = triangle.A;
     const Vec3 &b = triangle.B;
@@ -141,8 +140,7 @@ bool intersectTriangle(const Ray &ray, const Triangle &triangle,
     return true;
 }
 
-bool intersectMesh(const Ray &ray, const Mesh &mesh,
-                   const Scene &scene, HitRecord &record) {
+bool intersectMesh(const Ray &ray, const Mesh &mesh, HitRecord &record) {
 
     Ray currentRay = ray;
     bool hitAnything = false;
@@ -150,16 +148,14 @@ bool intersectMesh(const Ray &ray, const Mesh &mesh,
 
     for (const Triangle &face : mesh.faces) {
 
-        if (intersectTriangle(currentRay, face, scene, tempRecord)) {
+        if (intersectTriangle(currentRay, face, tempRecord)) {
 
             hitAnything = true;
 
-            // Only accept closer intersections from now on.
             currentRay.tMax = tempRecord.t;
 
             record = tempRecord;
 
-            // All faces use the mesh's material.
             record.materialId = mesh.materialId;
         }
     }
@@ -167,8 +163,7 @@ bool intersectMesh(const Ray &ray, const Mesh &mesh,
     return hitAnything;
 }
 
-bool intersectCylinder(const Ray &ray, const Cylinder &cylinder,
-                       const Scene &scene, HitRecord &record) {
+bool intersectCylinder(const Ray &ray, const Cylinder &cylinder, HitRecord &record) {
 
     const double axisLength = cylinder.axis.Length();
     const double directionLength = ray.direction.Length();
@@ -178,19 +173,18 @@ bool intersectCylinder(const Ray &ray, const Cylinder &cylinder,
         return false;
     }
 
-    // Normalize the cylinder axis, not the ray direction.
-    const Vec3 axis = cylinder.axis / axisLength;
+
+    const Vec3 axis = cylinder.axis.Normalize();
     const Vec3 q = ray.origin - cylinder.center;
 
     const double halfHeight = cylinder.height * 0.5;
     const double radiusSquared = cylinder.radius * cylinder.radius;
     const double EPSILON = 1e-12;
 
-    // Components along the cylinder axis.
     const double dAlong = Vec3::Dot(ray.direction, axis);
     const double qAlong = Vec3::Dot(q, axis);
 
-    // Components perpendicular to the cylinder axis.
+
     const Vec3 dPerp = ray.direction - axis * dAlong;
     const Vec3 qPerp = q - axis * qAlong;
 
@@ -198,7 +192,7 @@ bool intersectCylinder(const Ray &ray, const Cylinder &cylinder,
     double bestT = ray.tMax;
     Vec3 bestNormal;
 
-    // 1. Side surface: a*t^2 + 2*halfB*t + c = 0.
+    //Side surface
     if (dPerp.Length() > EPSILON * directionLength) {
 
         const double a = Vec3::Dot(dPerp, dPerp);
@@ -222,7 +216,6 @@ bool intersectCylinder(const Ray &ray, const Cylinder &cylinder,
                     continue;
                 }
 
-                // Keep only hits within the finite cylinder's height.
                 const double axialPosition = qAlong + t * dAlong;
 
                 if (axialPosition < -halfHeight ||
@@ -240,7 +233,7 @@ bool intersectCylinder(const Ray &ray, const Cylinder &cylinder,
         }
     }
 
-    // 2. Bottom and top caps.
+    //Bottom and top caps
     if (std::abs(dAlong) > EPSILON * directionLength) {
 
         const double signs[2] = {-1.0, 1.0};
@@ -256,7 +249,7 @@ bool intersectCylinder(const Ray &ray, const Cylinder &cylinder,
                 continue;
             }
 
-            // Vector from the cap center to the intersection point.
+            
             const Vec3 fromCapCenter =
                 q + ray.direction * t - axis * capPosition;
 
@@ -295,7 +288,7 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     //Check Planes
     for (const Plane& plane : scene.planes) {
-        if (intersectPlane(currentRay, plane, scene, tempRecord)) {
+        if (intersectPlane(currentRay, plane, tempRecord)) {
             hitAnything = true;
             currentRay.tMax = tempRecord.t;
             bestHit = tempRecord;
@@ -304,7 +297,7 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     //Check Spheres
     for (const Sphere& sphere : scene.spheres) {
-        if (intersectSphere(currentRay, sphere, scene, tempRecord)) {
+        if (intersectSphere(currentRay, sphere, tempRecord)) {
             hitAnything = true;
             currentRay.tMax = tempRecord.t;
             bestHit = tempRecord;
@@ -314,7 +307,7 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
     // Check Triangles
 
     for (const Triangle &triangle : scene.triangles) {
-        if (intersectTriangle(currentRay, triangle, scene, tempRecord)) {
+        if (intersectTriangle(currentRay, triangle, tempRecord)) {
         hitAnything = true;
         currentRay.tMax = tempRecord.t;
         bestHit = tempRecord;
@@ -323,7 +316,7 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     // Check Meshes
     for (const Mesh &mesh : scene.meshes) {
-        if (intersectMesh(currentRay, mesh, scene, tempRecord)) {
+        if (intersectMesh(currentRay, mesh, tempRecord)) {
         hitAnything = true;
 
         currentRay.tMax = tempRecord.t;
@@ -333,7 +326,7 @@ bool findClosestHit(const Ray &ray, const Scene &scene, HitRecord &bestHit) {
 
     // Check Cylinders
     for (const Cylinder &cylinder : scene.cylinders) {
-    if (intersectCylinder(currentRay, cylinder, scene, tempRecord)) {
+    if (intersectCylinder(currentRay, cylinder, tempRecord)) {
         hitAnything = true;
         currentRay.tMax = tempRecord.t;
         bestHit = tempRecord;
@@ -357,34 +350,34 @@ bool isInShadow(const Vec3 &hitPoint, const Vec3 &surfaceNormal, const PointLigh
 
     for (const Sphere& sphere : scene.spheres) {
 
-        if (intersectSphere(shadowRay,sphere, scene, shadowRecord)) {
+        if (intersectSphere(shadowRay,sphere, shadowRecord)) {
             return true;
         }
 
     }
 
     for (const Plane& plane : scene.planes) {
-        if (intersectPlane(shadowRay, plane, scene, shadowRecord)) {
+        if (intersectPlane(shadowRay, plane, shadowRecord)) {
             return true;
         }
     }
 
     for (const Triangle& triangle : scene.triangles) {
-        if (intersectTriangle(shadowRay, triangle, scene, shadowRecord)) {
+        if (intersectTriangle(shadowRay, triangle, shadowRecord)) {
             return true;
         }
     }
 
     for (const Mesh& mesh : scene.meshes) {
         for (const Triangle& face : mesh.faces) {
-            if (intersectTriangle(shadowRay, face, scene, shadowRecord)) {
+            if (intersectTriangle(shadowRay, face, shadowRecord)) {
                 return true;
             }
         }
     }
 
     for (const Cylinder& cylinder : scene.cylinders) {
-        if (intersectCylinder(shadowRay, cylinder, scene, shadowRecord)) {
+        if (intersectCylinder(shadowRay, cylinder, shadowRecord)) {
             return true;
         }
     }

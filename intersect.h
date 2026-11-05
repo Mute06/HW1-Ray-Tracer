@@ -17,11 +17,11 @@ struct HitRecord {
 };
 
 //Intersection Functions
-bool intersectSphere(const Ray& ray, const Sphere& sphere, const Scene& scene, HitRecord& record);
-bool intersectPlane(const Ray& ray, const Plane& plane, const Scene& scene, HitRecord& record);
-bool intersectTriangle(const Ray &ray, const Triangle &triangle, const Scene &scene, HitRecord &record);
-bool intersectMesh(const Ray &ray, const Mesh &mesh, const Scene &scene, HitRecord &record);
-bool intersectCylinder(const Ray &ray, const Cylinder &cylinder, const Scene &scene, HitRecord &record);
+bool intersectSphere(const Ray& ray, const Sphere& sphere, HitRecord& record);
+bool intersectPlane(const Ray& ray, const Plane& plane, HitRecord& record);
+bool intersectTriangle(const Ray &ray, const Triangle &triangle, HitRecord &record);
+bool intersectMesh(const Ray &ray, const Mesh &mesh, HitRecord &record);
+bool intersectCylinder(const Ray &ray, const Cylinder &cylinder, HitRecord &record);
 bool findClosestHit(const Ray& ray, const Scene& scene, HitRecord& bestHit);
 
 bool isInShadow(const Vec3& hitPoint, const Vec3& surfaceNormal, const PointLight& light, const Scene& scene);
