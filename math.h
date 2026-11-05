@@ -157,4 +157,9 @@ struct Ray {
     }
 };
 
+//Determinant of matrix with column u, v , w
+inline double determinant(const Vec3 &u, const Vec3 &v, const Vec3 &w) {
+    return Vec3::Dot(u, Vec3::Cross(v, w));
+}
+
 #endif // MATH_H

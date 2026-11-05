@@ -80,10 +80,6 @@ bool intersectTriangle(const Ray &ray, const Triangle &triangle, HitRecord &reco
     const Vec3 &b = triangle.B;
     const Vec3 &c = triangle.C;
 
-    // Determinant of the matrix with columns u, v, w.
-    auto determinant = [](const Vec3 &u, const Vec3 &v, const Vec3 &w) {
-        return Vec3::Dot(u, Vec3::Cross(v, w));
-    };
 
     // [a-b  a-c  d] * [beta gamma t]^T = a-o
     const Vec3 ab = a - b;
