@@ -133,7 +133,13 @@ bool intersectTriangle(const Ray &ray, const Triangle &triangle, HitRecord &reco
 
     record.t = t;
     record.point = ray.PointAt(t);
-    record.normal = normal / normalLength;
+
+    Vec3 unitNormal = normal / normalLength;
+    if (Vec3::Dot(ray.direction, unitNormal) > 0.0) {
+        unitNormal = unitNormal * -1.0; // Flip normal if ray hits the back face
+    }
+    record.normal = unitNormal;
+
     record.materialId = triangle.materialId;
     record.hit = true;
 
@@ -254,7 +260,7 @@ bool intersectCylinder(const Ray &ray, const Cylinder &cylinder, HitRecord &reco
                 q + ray.direction * t - axis * capPosition;
 
             // Keep only points inside the circular cap.
-            if (Vec3::Dot(fromCapCenter, fromCapCenter) > radiusSquared) {
+            if (Vec3::Dot(fromCapCenter, fromCapCenter) > radiusSquared + 1e-6  ) {
                 continue;
             }
 

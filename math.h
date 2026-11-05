@@ -112,6 +112,10 @@ struct Vec3 {
         return LengthSquared() == 1.0;
     }
 
+    static Vec3 Reflect(const Vec3& v, const Vec3& normal){
+        return v - (2.0 * Dot(v, normal) * normal);
+    }
+
     //Constants
     static constexpr Vec3 Zero() {
         return {0.0, 0.0, 0.0};
